@@ -4,21 +4,34 @@ import pickle
 import pandas as pd
 import sys
 
-if len(sys.argv) != 2:
-	sys.exit("Error: incorrect number of arguments supplied. Usage: python train.py example.csv")
+if len(sys.argv) < 2:
+	sys.exit("Error: incorrect number of arguments supplied. Usage: python train.py example.csv optional_feature_1 optional_feature_2...")
 
 filepath = sys.argv[1]
-names = ['book_value', 'market_cap', 'dividend_yield', 'eps', 'price_earnings_ratio', 'price_book_ratio', 'dps', 'current_ratio', 'quick_ratio', 'increase']
 
+# load data from csv
 try:
-    dataframe = pd.read_csv(filepath, names=names)
+  dataframe = pd.read_csv(filepath)
 except:
-    sys.exit("Error: csv file not found.")
+  sys.exit("Error: csv file not found.")
 
-X_train, X_test, Y_train, Y_test = model_selection.train_test_split(dataframe.drop('increase', axis=1), dataframe['increase'], test_size=.7)
+# default features
+features = ['bookValue','marketCap','dividendYield','peRatio','pbRatio','currentRatio','quickRatio','stockPrice','eps']
 
-model = LogisticRegression()
+# check for custom features
+if len(sys.argv) >= 3:
+  temp = sys.argv[2:]
+  #check if provided features exist
+  result = all(feature in features for feature in temp)
+  if not result:
+    sys.exit("Error: incorrect feature(s) supplied. Default available features are {}".format(features))
+  else :
+    features = temp
+
+# test and train split
+X_train, X_test, Y_train, Y_test = model_selection.train_test_split(dataframe[features], dataframe['increase'],test_size=.7)
+
+model = LogisticRegression(solver = 'lbfgs')#, multi_class='multinomial'
 model.fit(X_train, Y_train)
 
-filename = 'model.sav'
-pickle.dump(model, open(filename, 'wb'))
+pickle.dump(model, open('model.sav', 'wb'))
