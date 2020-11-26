@@ -48,3 +48,5 @@ test_score = model.evaluate(x_test, y_test,verbose=0)
 
 print(model.metrics_names)
 print(test_score)
+
+model.save('nnmodel')
