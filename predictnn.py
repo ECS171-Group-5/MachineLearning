@@ -1,20 +1,27 @@
 import sys
-import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
+from sklearn import preprocessing
 import os
+import pickle
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 try:
-    model = keras.models.load_model("nnmodel")
+	model = keras.models.load_model("nnmodel")
 except:
-    sys.exit("Error: model folder not found. Try training with catnn.py first.")
+	sys.exit("Error: model folder not found. Try training with catnn.py first.")
 
 try:
-    X = np.genfromtxt('test.csv',delimiter=',')[1:]
+	df = pd.read_csv('test.csv')
+	scaler = pickle.load(open('scaler.sav', 'rb'))
 except:
-    sys.exit("Error: input file not found.")
+	sys.exit("Error: dataset not found. Try processing data with preprocessing.py first.")
+
+df = pd.read_csv('test.csv')
+scaler = pickle.load(open('scaler.sav', 'rb'))
+X = scaler.transform(df.drop(['symbol'],axis=1))[['marketCap','currentRatio','quickRatio','stockPrice','month','year']]
 
 result = model.predict_classes(X)
 print(result)

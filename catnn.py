@@ -29,8 +29,7 @@ features = features.drop(targets)
 model = keras.Sequential(
     [
         layers.Dense(9,input_dim=6, activation='relu'),
-        layers.Dense(12, activation='elu'),
-        layers.Dense(6, activation='relu'),
+        layers.Dense(9, activation='elu'),
 		    layers.Dense(3, activation='softmax')
     ]
 )

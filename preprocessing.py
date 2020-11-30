@@ -5,6 +5,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn import preprocessing
 import seaborn as sns
 import sys
+import pickle
 
 if len(sys.argv) < 2:
 	sys.exit("Error: incorrect number of arguments supplied. Usage: python preprocessing.py example.csv")
@@ -69,18 +70,19 @@ df = features.copy()
 # separate training and test data
 test = df[df['increasePercent'].isnull()].copy().drop('increasePercent',axis=1)
 train = df.drop(test.index).copy()
-test.to_csv("test.csv",index=False)
 
 # encode increase percent
-
 train['increase'] = (train['increasePercent'] > .1).astype('int64')
 train['decrease'] = (train['increasePercent'] < -.1).astype('int64')
 train['none'] = (train['increasePercent'].between(-.1,.1)).astype('int64')
 train = train.drop('increasePercent',axis=1)
 
-print(train['increase'].sum())
-print(train['decrease'].sum())
-print(train['none'].sum())
+# save output
+test.to_csv("test.csv",index=False)
 train.to_csv("train.csv",index=False)
+pickle.dump(min_max_scaler, open('scaler.sav', 'wb'))
+
+
+
 
 
