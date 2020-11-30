@@ -72,9 +72,10 @@ train = df.drop(test.index).copy()
 test.to_csv("test.csv",index=False)
 
 # encode increase percent
-train['increase'] = (train['increasePercent'] >= .05).astype('int64')
-train['decrease'] = (train['increasePercent'] <= -.05).astype('int64')
-train['none'] = ((train['increase'] + train['decrease']) == 0).astype('int64')
+
+train['increase'] = (train['increasePercent'] > .1).astype('int64')
+train['decrease'] = (train['increasePercent'] < -.1).astype('int64')
+train['none'] = (train['increasePercent'].between(-.1,.1)).astype('int64')
 train = train.drop('increasePercent',axis=1)
 
 print(train['increase'].sum())

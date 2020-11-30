@@ -5,11 +5,10 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers,metrics
 import sys
-import warnings
-warnings.filterwarnings('ignore')
 
-if len(sys.argv) < 2 or len(sys.argv) > 3:
-	sys.exit("Error: incorrect number of arguments supplied. Usage: python train.py example.csv optional_target")
+
+if len(sys.argv) < 2:
+	sys.exit("Error: incorrect number of arguments supplied. Usage: python train.py example.csv")
 
 filepath = sys.argv[1]
 
@@ -20,33 +19,37 @@ except:
   sys.exit("Error: csv file not found.")
 
 features = dataframe.columns
-targets = ['increase','decrease']
+targets = ['increase','decrease','none']
 features = features.drop(targets)
 
 # test and train split
-x_train, x_test, y_train, y_test = train_test_split(dataframe[features], dataframe[targets],test_size=.3)
+# x_train, x_test, y_train, y_test = train_test_split(dataframe[features], dataframe[targets],test_size=.3)
 
 # Build the model
-model = keras.Sequential()
-model.add(layers.Dense(9,input_dim=9, activation='relu'))
-model.add(layers.Dense(9, activation='relu'))
-model.add(layers.Dense(2, activation='softmax'))
+model = keras.Sequential(
+    [
+        layers.Dense(9,input_dim=6, activation='relu'),
+        layers.Dense(12, activation='elu'),
+        layers.Dense(6, activation='relu'),
+		    layers.Dense(3, activation='softmax')
+    ]
+)
 
 # Compile the model
 model.compile(
-    loss='categorical_crossentropy',
+    loss='binary_crossentropy',
     optimizer=keras.optimizers.Adam(),
-    metrics=['accuracy', metrics.Precision(.38),metrics.Recall(.38)]
+    metrics=[metrics.BinaryAccuracy(threshold=.5), metrics.Precision(.5),metrics.Recall(.5)]
 )
 
 # Train the model
-model.fit(x_train, y_train,epochs=100, batch_size=50)
+model.fit(dataframe[features], dataframe[targets],epochs=33, batch_size=10,class_weight='balanced')
 
 # Test the model
-train_score = model.evaluate(x_train,y_train,verbose=0)
-test_score = model.evaluate(x_test, y_test,verbose=0)
+train_score = model.evaluate(dataframe[features],dataframe[targets],verbose=0)
+# test_score = model.evaluate(x_test, y_test,verbose=0)
 
 print(model.metrics_names)
-print(test_score)
+print(train_score)
 
 model.save('nnmodel')
