@@ -23,12 +23,11 @@ targets = ['increase','decrease','none']
 features = features.drop(targets)
 
 # test and train split
-# x_train, x_test, y_train, y_test = train_test_split(dataframe[features], dataframe[targets],test_size=.3)
 
 # Build the model
 model = keras.Sequential(
     [
-        layers.Dense(9,input_dim=6, activation='relu'),
+        layers.Dense(9,input_dim=6, activation='elu'),
         layers.Dense(9, activation='elu'),
 		    layers.Dense(3, activation='softmax')
     ]
@@ -46,7 +45,6 @@ model.fit(dataframe[features], dataframe[targets],epochs=33, batch_size=10,class
 
 # Test the model
 train_score = model.evaluate(dataframe[features],dataframe[targets],verbose=0)
-# test_score = model.evaluate(x_test, y_test,verbose=0)
 
 print(model.metrics_names)
 print(train_score)

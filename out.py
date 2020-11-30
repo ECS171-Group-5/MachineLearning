@@ -5,7 +5,6 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn import preprocessing
 import seaborn as sns
 import sys
-import pickle
 
 if len(sys.argv) < 2:
 	sys.exit("Error: incorrect number of arguments supplied. Usage: python preprocessing.py example.csv")
@@ -31,9 +30,6 @@ def add_increase_pct(grp):
 
 df = df.groupby('symbol').apply(add_increase_pct)
 
-# # drop symbol
-df = df.drop('symbol',axis=1)
-
 # encode day month and year as integers
 df['date'] = pd.to_datetime(df['date'])
 df['day'] =  df['date'].dt.day
@@ -41,46 +37,20 @@ df['month'] =  df['date'].dt.month
 df['year'] =  df['date'].dt.year
 df = df.drop('date',axis=1)
 
-features = df.drop('increasePercent',axis=1).copy()
-
-# normalize features
-min_max_scaler = preprocessing.MinMaxScaler()
-features = pd.DataFrame(min_max_scaler.fit_transform(features.values),columns=features.columns)
-
-# drop features with high VIF
-def get_max_vif():
-	max_vif = 5
-	max_feature = None
-	for i in range(features.shape[1]):
-		vif = variance_inflation_factor(features.values, i) 
-		if vif > max_vif:
-			max_vif = vif
-			max_feature = features.columns[i] 
-	return max_feature, max_vif
-
-f, v = get_max_vif()
-while f is not None:
-	features = features.drop(f, axis=1)
-	f, v = get_max_vif()
-
-features['increasePercent'] = df['increasePercent']
-df = features.copy()
-
 # separate training and test data
 test = df[df['increasePercent'].isnull()].copy().drop('increasePercent',axis=1)
 train = df.drop(test.index).copy()
+test.to_csv("test.csv",index=False)
 
 # encode increase percent
-train['increase'] = (train['increasePercent'] > .025).astype('int64')
-train['decrease'] = (train['increasePercent'] < -.025).astype('int64')
-train['none'] = (train['increasePercent'].between(-.025,.025)).astype('int64')
+train['increase'] = (train['increasePercent'] >= .1).astype('int64')
+train['decrease'] = (train['increasePercent'] <= -.1).astype('int64')
+train['none'] = ((train['increase'] + train['decrease']) == 0).astype('int64')
 train = train.drop('increasePercent',axis=1)
 
-# save output
-test.to_csv("test.csv",index=False)
+print(train['increase'].sum())
+print(train['decrease'].sum())
+print(train['none'].sum())
 train.to_csv("train.csv",index=False)
-pickle.dump(min_max_scaler, open('scaler.sav', 'wb'))
-
-
 
 

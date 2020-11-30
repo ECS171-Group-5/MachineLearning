@@ -19,9 +19,14 @@ try:
 except:
 	sys.exit("Error: dataset not found. Try processing data with preprocessing.py first.")
 
-df = pd.read_csv('test.csv')
-scaler = pickle.load(open('scaler.sav', 'rb'))
-X = scaler.transform(df.drop(['symbol'],axis=1))[['marketCap','currentRatio','quickRatio','stockPrice','month','year']]
+out = pd.DataFrame()
+out['symbol'] = df['symbol']
 
-result = model.predict_classes(X)
-print(result)
+df = pd.read_csv('test.csv').drop(['symbol'],axis=1)
+scaler = pickle.load(open('scaler.sav', 'rb'))
+X = pd.DataFrame(scaler.transform(df),columns=df.columns)
+out['predict'] = 'increasePercent'
+out['result'] = model.predict_classes(X[['marketCap','currentRatio','quickRatio','stockPrice','month','year']])
+print(out)
+print(out.describe())
+out.to_csv("output.csv",index=False)
