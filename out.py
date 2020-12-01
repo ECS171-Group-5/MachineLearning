@@ -25,7 +25,7 @@ df = df.loc[:,valid_columns]
 df = df.dropna()
 
 def add_increase_pct(grp):
-   grp['increasePercent'] = grp['stockPrice'].pct_change()
+   grp['increasePercent'] = grp['stockPrice'].pct_change(-1).shift(1)
    return grp
 
 df = df.groupby('symbol').apply(add_increase_pct)

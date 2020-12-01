@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers,metrics
+from imblearn.over_sampling import RandomOverSampler
 import sys
 
 
@@ -23,25 +24,27 @@ targets = ['increase','decrease','none']
 features = features.drop(targets)
 
 # test and train split
+oversample = RandomOverSampler(sampling_strategy='not majority')
+X_over, y_over = oversample.fit_resample(dataframe[features].to_numpy(), dataframe[targets].to_numpy())
 
 # Build the model
 model = keras.Sequential(
     [
-        layers.Dense(9,input_dim=6, activation='elu'),
-        layers.Dense(9, activation='elu'),
+        layers.Dense(6,input_dim=6, activation='relu'),
+        layers.Dense(6, activation='relu'),
 		    layers.Dense(3, activation='softmax')
     ]
 )
 
 # Compile the model
 model.compile(
-    loss='binary_crossentropy',
+    loss='categorical_crossentropy',
     optimizer=keras.optimizers.Adam(),
-    metrics=[metrics.BinaryAccuracy(threshold=.5), metrics.Precision(.5),metrics.Recall(.5)]
+    metrics=[metrics.CategoricalAccuracy(), metrics.Precision(.5),metrics.Recall(.5)]
 )
 
 # Train the model
-model.fit(dataframe[features], dataframe[targets],epochs=33, batch_size=10,class_weight='balanced')
+model.fit(X_over, y_over,epochs=200, batch_size=50,class_weight={0:.35,1:.325,2:.325})
 
 # Test the model
 train_score = model.evaluate(dataframe[features],dataframe[targets],verbose=0)

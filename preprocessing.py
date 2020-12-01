@@ -26,7 +26,7 @@ df = df.loc[:,valid_columns]
 df = df.dropna()
 
 def add_increase_pct(grp):
-   grp['increasePercent'] = grp['stockPrice'].pct_change()
+   grp['increasePercent'] = grp['stockPrice'].pct_change(-1).shift(1)
    return grp
 
 df = df.groupby('symbol').apply(add_increase_pct)
@@ -71,9 +71,9 @@ test = df[df['increasePercent'].isnull()].copy().drop('increasePercent',axis=1)
 train = df.drop(test.index).copy()
 
 # encode increase percent
-train['increase'] = (train['increasePercent'] > .025).astype('int64')
-train['decrease'] = (train['increasePercent'] < -.025).astype('int64')
-train['none'] = (train['increasePercent'].between(-.025,.025)).astype('int64')
+train['increase'] = (train['increasePercent'] > .1).astype('int64')
+train['decrease'] = (train['increasePercent'] < -.1).astype('int64')
+train['none'] = (train['increasePercent'].between(-.1,.1)).astype('int64')
 train = train.drop('increasePercent',axis=1)
 
 # save output
@@ -81,6 +81,9 @@ test.to_csv("test.csv",index=False)
 train.to_csv("train.csv",index=False)
 pickle.dump(min_max_scaler, open('scaler.sav', 'wb'))
 
+print(train['increase'].sum())
+print(train['decrease'].sum())
+print(train['none'].sum())
 
 
 
